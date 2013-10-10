@@ -17,3 +17,6 @@ project/plugins/project/
 
 # Sublime Text
 *.sublime-*
+
+# Npm
+node_modules
