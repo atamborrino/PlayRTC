@@ -60,6 +60,8 @@ libraryDependencies += "com.github.atamborrino" %% "playrtc" % 0.1
 
 You must define a receiver:
 ```scala
+import com.github.atamborrino.playrtc._
+
 class MyReceiver(id: String) extends Receiver(id) {
   import context._
   
