@@ -105,10 +105,13 @@ def websocket = WebSocket.using { req =>
 }
 ```
 
-But generally, your app will have several rooms. You can for example create an actor that stores a map of roomId -> room. In thise case you will retrieve a room asynchronously:
+```websocket[MyReceiver](userid)``` returns a ```(Iteratee[JsValue, Unit], Enumerator[JsValue])```. Note that if you want to use custom Props, you can use 
+```websocket(userid, myReceiverProps)```.
+
+But your app usually needs several rooms. You can for example create an actor that stores a map of roomId -> room, and then ask him for the room with roomdId. In thise case you will retrieve a room asynchronously:
 ```scala
 def websocket(roomId: String) = WebSocket.async { req =>
-  val futureRoom = // get the room of id = roomId
+  val futureRoom = // ask for the room of id = roomId
   val userid = // generate user id
     
   futureRoom.map(_.websocket[MyReceiver](userid))
