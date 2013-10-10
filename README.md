@@ -5,7 +5,7 @@
 PlayRTC gives you out-of-the-box rooms where members can send P2P messages between each others via SCTP Data channels, and communicate with the server via Websocket. It provides also automatic heartbeats.
 
 ## Client side
-You need to include ```playrtc.js``` which exposes a global Playrtc object.
+You need to include ```playrtc.js``` or ```playrtc.min.js``` which exposes a global Playrtc object.
 ```js
 var io = Playrtc.connect('ws://<your_websocket_endpoint>');
 var p2p = io.p2p;
