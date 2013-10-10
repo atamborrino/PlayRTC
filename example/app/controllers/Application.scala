@@ -7,11 +7,12 @@ import play.api.libs.json._
 import play.api.Play.current
 import java.util.UUID
 import play.Logger
-import com.github.atamborrino.playrtc._
 import play.api.libs.concurrent.Akka
 import akka.pattern.{ask, pipe}
 import akka.util.Timeout
 import scala.concurrent.duration._
+
+import com.github.atamborrino.playrtc._
 
 class MyReceiver(id: String) extends Receiver(id) {
   import context._
@@ -79,9 +80,9 @@ class Rooms extends Actor {
         rooms = rooms + (id -> newRoom)
         newRoom
       })
-      sender ! room    
+      sender ! room 
+      
   }
-  
 }
 
 object Application extends Controller {
@@ -97,7 +98,7 @@ object Application extends Controller {
     Ok(views.html.room())
   }
   
-  def websocket(id: String) = WebSocket.async { _ =>
+  def websocket(id: String) = WebSocket.async { req =>
     implicit val timeout = Timeout(1 second)
     val futureRoom = (rooms ? GetOrElseCreateRoom(id)).mapTo[Room]
     val userid = UUID.randomUUID().toString()
