@@ -33,19 +33,27 @@ lazy val ghPublish = taskKey[Unit]("Publish to your maven github repo")
 ghPublish := {
   import scala.sys.process._  
   val mavenRepoFile = new java.io.File(localMavenRepo)
+  val publishRef = organization.value + "." + name.value + " " + version.value
   println("\nPulling your Github maven repo...")
-  Process("git pull", mavenRepoFile).!
-  // Publish to localMavenRepo
-  val _ = publish.value
-  // Git add, commit and push
-  println("\nWe will now push your local maven repo to Github...")
-  Process("git add *", mavenRepoFile).!
-  val commitMsg = "Publish " + organization.value + "." + name.value + " " + version.value
-  if (Process(Seq("git", "commit",  "-m", commitMsg), mavenRepoFile).! == 0) {
-    Process("git push", mavenRepoFile).!
-    println(organization.value + "." + name.value + " " + version.value + " has been sucessfully published.")
+  if (Process("git pull", mavenRepoFile).! == 0) {
+    // Publish to localMavenRepo
+    println("\nPublishing to your local Git maven repo...")
+    val _ = publish.value
+    // Git add, commit and push
+    println("\nWe will now push your local Git maven repo to Github...")
+    Process("git add *", mavenRepoFile).!
+    val commitMsg = "Publish " + publishRef
+    if (Process(Seq("git", "commit",  "-m", commitMsg), mavenRepoFile).! == 0) {
+      if (Process("git push", mavenRepoFile).! == 0) {
+        println(publishRef + " has been sucessfully published to your Github maven repo.")
+      } else {
+        println("Error during git push. Please retry.")
+      }
+    } else {
+      println("\nNothing new to publish to your Github maven repo: it seems that your Github repo is up-to-date.")
+    }
   } else {
-    println("\nNothing new to publish.")
+    println("Error during git pull. Cannot continue.")
   }
 }
 

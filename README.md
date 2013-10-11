@@ -2,7 +2,7 @@
 
 **Start your room-based real time app (WebRTC Data Channel & WebSocket) in minutes with Play Framework 2.2**
 
-PlayRTC gives you out-of-the-box rooms where members can send P2P messages to each others via SCTP Data channels, and communicate with the server via Websocket. It provides also automatic heartbeats.
+PlayRTC gives you out-of-the-box rooms where members can send P2P messages to each other via WebRTC SCTP Data channels, and communicate with the server via Websocket. It also provides automatic heartbeats.
 
 ## Client side
 You need to include ```playrtc.js``` or ```playrtc.min.js``` which exposes a global Playrtc object.
