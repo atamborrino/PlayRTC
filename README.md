@@ -67,7 +67,7 @@ class MyReceiver(id: String) extends Receiver(id) {
   
   def customReceive: Receive = {
     case Ready =>
-      // Member of id = this.id is connected to every others members via Data Channels
+      // Member of id = this.id is connected to every other members via Data Channels
       Logger.info(s"Member of id = $id is ready")
       // do some initialization server side...
        
@@ -78,7 +78,7 @@ class MyReceiver(id: String) extends Receiver(id) {
       }
       maybePong.foreach(parent ! Send(id, _))
 
-    case Msg("processThenBroadcast", dataToProcess: JsString) =>
+    case Msg("processThenBroadcast", dataToProcess: JsObject) =>
       // process dataToProcess server side...
       val processed = Msg("broadcastedFromServer", Json.obj("processedData" -> "processed data"))
       parent ! Broadcast(processed) // Broadcast to every member (including ourself)
