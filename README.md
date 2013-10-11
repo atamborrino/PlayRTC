@@ -52,13 +52,13 @@ The server side code is strongly inspired by [play-actor-room](https://github.co
 
 As in [play-actor-room](https://github.com/mandubian/play-actor-room), each member is represented by 2 actors: a receiver and a sender. For each room there is 1 supervisor which is the parent of the receivers and senders.
 
-To use it, add the following resolver and library:
+To use it, add the following resolver and library to your build.sbt:
 ```scala
-resolvers += "Atamborrino repo" at "TODO"
-libraryDependencies += "com.github.atamborrino" %% "playrtc" % 0.1
+resolvers += "Atamborrino repository snapshots" at "https://github.com/atamborrino/maven-atamborrino/raw/master/snapshots/"
+libraryDependencies += "com.github.atamborrino" %% "playrtc" % "0.1-SNAPSHOT"
 ```
 
-You must define a receiver:
+Then, you must define a receiver:
 ```scala
 import com.github.atamborrino.playrtc._
 

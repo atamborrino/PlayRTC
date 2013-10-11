@@ -31,22 +31,22 @@ publishTo := {
 lazy val ghPublish = taskKey[Unit]("Publish to your maven github repo")
 
 ghPublish := {
-  // Publish to localMavenRepo
-  val _ = publish.value
-  // Git pull, add, commit and push
   import scala.sys.process._  
   val mavenRepoFile = new java.io.File(localMavenRepo)
   def execute(strings: Seq[String]) = sys.process.Process(strings, mavenRepoFile).!!
-  println("\nWe will now publish your local maven repo to Github...")
+  println("\nPulling your Github maven repo...")
   execute(Seq("git", "pull"))
-  execute(Seq("git", "add", "."))
-  if (sys.process.Process("git diff --exit-code", mavenRepoFile).! > 0) {
-    val commitMsg = "Publish " + organization.value + "." + name.value + " " + version.value
-    execute(Seq("git", "commit",  "-m", commitMsg))
+  // Publish to localMavenRepo
+  val _ = publish.value
+  // Git add, commit and push
+  println("\nWe will now publish your local maven repo to Github...")
+  execute(Seq("git", "add", "*"))
+  val commitMsg = "Publish " + organization.value + "." + name.value + " " + version.value
+  if (sys.process.Process(Seq("git", "commit",  "-m", commitMsg), mavenRepoFile).! == 0) {
     println(execute(Seq("git", "push")))
-    println(organization.value + "." + name.value + " " + version.value + "has been sucessfully published.")
+    println(organization.value + "." + name.value + " " + version.value + " has been sucessfully published.")
   } else {
-    println("Nothing new to publish.")
+    println("\nNothing new to publish.")
   }
 }
 

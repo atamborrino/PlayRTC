@@ -1,15 +1,15 @@
 name := "playrtc-example"
 
-version := "1.0-SNAPSHOT"
+version := "0.1-SNAPSHOT"
 
 libraryDependencies ++= Seq(
-  "org.mandubian" %% "play-actor-room" % "0.1",
   "com.github.atamborrino" %% "playrtc" % "0.1-SNAPSHOT"
 )     
 
 resolvers ++= Seq(
-  "Mandubian repository releases" at "https://github.com/mandubian/mandubian-mvn/raw/master/releases/",
-  Resolver.file("Local repo", file("/Users/atamborrino/.ivy2/local"))(Resolver.ivyStylePatterns)
+  // Resolver.file("Local repo", file("/Users/atamborrino/.ivy2/local"))(Resolver.ivyStylePatterns)
+  "Atamborrino repository snapshots" at "https://github.com/atamborrino/maven-atamborrino/raw/master/snapshots/",
+  "Atamborrino repository releases" at "https://github.com/atamborrino/maven-atamborrino/raw/master/releases/"
 )
 
 play.Project.playScalaSettings
