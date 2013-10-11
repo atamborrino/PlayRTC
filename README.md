@@ -2,7 +2,7 @@
 
 **Start your room-based real time app (WebRTC Data Channel & WebSocket) in minutes with Play Framework 2.2**
 
-PlayRTC gives you out-of-the-box rooms where members can send P2P messages to each other via WebRTC SCTP Data channels, and communicate with the server via Websocket. It also provides automatic heartbeats.
+PlayRTC gives you out-of-the-box rooms where members can send P2P messages to each other via WebRTC SCTP Data Channels, and communicate with the server via Websocket. It also provides automatic heartbeats.
 
 ## Client side
 You need to include ```playrtc.js``` or ```playrtc.min.js``` which exposes a global Playrtc object.
@@ -45,20 +45,20 @@ io.on('memberLeft', function(id) {
 });
 ```
 
-You can use the function ```Playrtc.isCompatible()``` to detect if the browser is compatible with SCTP Data channels.
+You can use the function ```Playrtc.isCompatible()``` to detect if the browser is compatible with SCTP Data Channels.
 
 ## Server side
-The server side code is strongly inspired by [play-actor-room](https://github.com/mandubian/play-actor-room). PlayRTC was originally on top of it, but as I found myself re-writing many internal stuffs to adapt it to PlayRTC, I eventually re-wrote the code parts of play-actor-room that PlayRTC is using.
+The server side code is heavily inspired by [play-actor-room](https://github.com/mandubian/play-actor-room). PlayRTC was originally on top of it, but as I found myself re-writing many internal stuffs to adapt it to PlayRTC, I eventually ended up re-writing the code parts of play-actor-room that PlayRTC is using.
 
-As in [play-actor-room](https://github.com/mandubian/play-actor-room), each member is represented by 2 actors: a receiver and a sender. For each room there is 1 supervisor which is the parent of the receivers and senders.
+As in [play-actor-room](https://github.com/mandubian/play-actor-room), each member is represented by 2 actors: a receiver and a sender. For each room there is 1 supervisor which is the parent of the receivers and senders of the members of this room.
 
-To use it, add the following resolver and library to your build.sbt:
+Add the following resolver and library to your build.sbt:
 ```scala
 resolvers += "Atamborrino repository snapshots" at "https://github.com/atamborrino/maven-atamborrino/raw/master/snapshots/"
 libraryDependencies += "com.github.atamborrino" %% "playrtc" % "0.1-SNAPSHOT"
 ```
 
-Then, you must define a receiver:
+Then, you must define a receiver to handle incoming messages:
 ```scala
 import com.github.atamborrino.playrtc._
 
@@ -67,8 +67,9 @@ class MyReceiver(id: String) extends Receiver(id) {
   
   def customReceive: Receive = {
     case Ready =>
-      // do some initialization server side...
+      // Member of id = this.id is connected to every others members via Data Channels
       Logger.info(s"Member of id = $id is ready")
+      // do some initialization server side...
        
     case Msg("ping", data: JsValue) =>
       val maybePong = (data \ "msg").asOpt[String] map { pingmsg =>
@@ -92,9 +93,9 @@ class MyReceiver(id: String) extends Receiver(id) {
 }
 ```
 
-A receiver can also ask his supervisor for the list of members ```parent ! ListMembersIds```and he will receive a message of type ```MemberIds(ids: Seq[String])```.
+A receiver can also ask his supervisor for the list of room members ```parent ! ListMembersIds```and he will receive a message of type ```MemberIds(ids: Seq[String])```.
 
-Heartbeat interval and delay are respectively 7 seconds and 3 seconds. You can change them by overriding their values in your receiver actor:
+Heartbeats' interval and delay are respectively 7 seconds and 3 seconds. You can change them by overriding their values in your receiver actor:
 ```scala
 import scala.concurrent.duration._
 
@@ -113,10 +114,9 @@ def websocket = WebSocket.using { req =>
 }
 ```
 
-```websocket[MyReceiver](userid)``` returns a ```(Iteratee[JsValue, Unit], Enumerator[JsValue])```. Note that if you want to use custom Props, you can use 
-```websocket(userid, myReceiverProps)```.
+```websocket[MyReceiver](userid)``` returns a ```(Iteratee[JsValue, Unit], Enumerator[JsValue])```. Note that if you want to use custom Props, you can use ```websocket(userid, myReceiverProps)```.
 
-But your app usually needs several rooms. You can for example create an actor that stores a map of roomId -> room, and then ask him for the room with roomdId. In thise case you will retrieve a room asynchronously:
+But your app usually needs several rooms. To do this you can for example create an actor that stores a map of roomId -> room, and then ask him for the room of id = roomdId. In thise case you will retrieve a room asynchronously:
 ```scala
 def websocket(roomId: String) = WebSocket.async { req =>
   val futureRoom = // ask for the room of id = roomId
