@@ -65,13 +65,16 @@ object Admin {
   case class Init(id: String, receiverActor: ActorRef)
   case class Disconnected(id: String)  
   case class Forbidden(id: String, err: String)
+  case object WebrtcHandshakeInit
+  case object StartTimeout
 }
 
 class Receiver(id: String) extends Actor {
   import context._
+  
+  val HB_INTERVAL = 7 seconds
+  val HB_DELAY = 3 seconds
   val log = Logging(system, Receiver.this)
-  val HB_INTERVAL = 10 seconds
-  val HB_DELAY = 5 seconds
   private var hbTimeout: Option[Cancellable] = None
     
   def receive = {
@@ -82,15 +85,17 @@ class Receiver(id: String) extends Actor {
         
     case Admin.Disconnected(_) =>
       hbTimeout.foreach(_.cancel())
+      
+    case Admin.WebrtcHandshakeInit =>
+      parent ! Admin.Send(id, Admin.Msg("initInfo", Json.obj("id" -> id, "hbInterval" -> HB_INTERVAL.toMillis)))
+    
+    case Admin.StartTimeout =>
+      hbTimeout = Some(system.scheduler.scheduleOnce(2*HB_DELAY + HB_INTERVAL, self, Admin.HbTimeout))
     
   }
   
   private def handleAdminMsg(msg: Admin.Msg): Unit = msg match {
     
-    case Admin.Msg("init", _) =>
-      parent ! Admin.Send(id, Admin.Msg("initInfo", Json.obj("id" -> id, "hbInterval" -> HB_INTERVAL.toMillis)))
-      hbTimeout = Some(system.scheduler.scheduleOnce(2*HB_DELAY + HB_INTERVAL, self, Admin.HbTimeout))
-      
     case Admin.Msg("hb", _) =>
       hbTimeout.foreach(_.cancel())
       hbTimeout = Some(system.scheduler.scheduleOnce(HB_DELAY + HB_INTERVAL, self, Admin.HbTimeout))
@@ -219,6 +224,7 @@ class Supervisor extends Actor {
             play.Logger.debug(s"Connected Member with ID:$id")
             wsMembers += (id -> Member(id, receiveActor, sendActor))
             notYetInitiatedMembers += id 
+            receiveActor ! Admin.StartTimeout
             c
         }
 
@@ -253,6 +259,7 @@ class WebSocketSender extends Actor {
       val me = self
       val enumerator = Concurrent.unicast[JsValue]{ c =>
         channel = Some(c)
+        receiverActor ! Admin.WebrtcHandshakeInit
       }
       sender ! Admin.ConnectedWS(id, receiverActor, enumerator)
 

@@ -94,6 +94,14 @@ class MyReceiver(id: String) extends Receiver(id) {
 
 A receiver can also ask his supervisor for the list of members ```parent ! ListMembersIds```and he will receive a message of type ```MemberIds(ids: Seq[String])```.
 
+Heartbeat interval and delay are respectively 7 seconds and 3 seconds. You can change them by overriding their values in your receiver actor:
+```scala
+import scala.concurrent.duration._
+
+override val HB_INTERVAL = 10 seconds
+override val HB_DELAY = 5 seconds
+```
+
 To connect everything, you just need to create your websocket endpoint in a Play controller.
 Example when the app contains only one room:
 ```scala
@@ -120,7 +128,7 @@ def websocket(roomId: String) = WebSocket.async { req =>
 
 That's it! A fully-implemented example app is located in the example folder.
 
-Note that *if* you need more customisation, you can override the Supervisor:
+Note that *if* you need more customization, you can override the Supervisor:
 ```scala
 class MySupervisor extends Supervisor {
   def customReceive = {

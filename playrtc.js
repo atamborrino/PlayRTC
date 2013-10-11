@@ -84,10 +84,6 @@
     self.server._msgCbs = {}; // WS user callbacks
     self.p2p._msgCbs = {}; // P2P user callbacks
 
-    self._ws.onopen = function() {
-      self._ws.send(adminMsg('init', null));
-    }
-
     self._ws.onmessage = function(event) {
       // console.log(event.data);
       var json = JSON.parse(event.data);
