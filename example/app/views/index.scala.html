@@ -1,3 +1,14 @@
 @main("Index") {
-  <p> Go to /room/&lt;id&gt; to join a room. </p> 
+  <form>
+    <label>Go to the room of id=</label>
+    <input id="roomId" type="text">
+    <input id="goToRoom" type="submit" value="Go"> 
+  </form>
+
+  <script type="text/javascript">
+    $('#goToRoom').click(function() {
+      window.location.href = "/room/" + $('#roomId').val();
+      return false;
+    });
+  </script>
 }
