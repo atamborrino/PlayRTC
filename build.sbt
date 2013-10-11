@@ -36,13 +36,14 @@ ghPublish := {
   // Git pull, add, commit and push
   import scala.sys.process._  
   val mavenRepoFile = new java.io.File(localMavenRepo)
-  println("\nGit pull, add, commit and push:")
-  println(sys.process.Process("git pull", mavenRepoFile).!!)
-  println(sys.process.Process("git add .", mavenRepoFile).!!)
+  def execute(strings: Seq[String]) = sys.process.Process(strings, mavenRepoFile).!!
+  println("\nWe will now publish your local maven repo to Github...")
+  execute(Seq("git", "pull"))
+  execute(Seq("git", "add", "."))
   if (sys.process.Process("git diff --exit-code", mavenRepoFile).! > 0) {
     val commitMsg = "Publish " + organization.value + "." + name.value + " " + version.value
-    println(sys.process.Process(Seq("git", "commit",  "-m", commitMsg), mavenRepoFile).!!)
-    println(sys.process.Process("git push", mavenRepoFile).!!)
+    execute(Seq("git", "commit",  "-m", commitMsg))
+    println(execute(Seq("git", "push")))
     println(organization.value + "." + name.value + " " + version.value + "has been sucessfully published.")
   } else {
     println("Nothing new to publish.")
