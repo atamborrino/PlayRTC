@@ -6,20 +6,20 @@ module.exports = function(grunt) {
 
     uglify: {
       options: {
-	      banner: '/*! <%= pkg.name %> <%= grunt.template.today("yyyy-mm-dd") %> */\n'
+        banner: '/*! <%= pkg.name %> <%= grunt.template.today("yyyy-mm-dd") %> */\n'
       },
       build: {
-	      src: '<%= pkg.name %>.js',
-	      dest: '<%= pkg.name %>.min.js'
+        src: '<%= pkg.name %>.js',
+        dest: '<%= pkg.name %>.min.js'
       }
     },
 
     copy: {
       main: {
-      	files: [
-      	  {src: ['playrtc.js'], dest: 'example/public/javascripts/'},
-      	  {src: ['playrtc.min.js'], dest: 'example/public/javascripts/'}
-      	]
+        files: [
+          {src: ['playrtc.js'], dest: 'example/public/javascripts/'},
+          {src: ['playrtc.min.js'], dest: 'example/public/javascripts/'}
+        ]
       }
     }
     
