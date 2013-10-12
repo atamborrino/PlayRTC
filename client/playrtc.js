@@ -109,7 +109,7 @@
           self.id = data.id; // receveid own id 
           self._initialMembers = data.members;
           if (data.members.length === 0) {
-            self._ready();
+            self._triggerReady();
           } else {
             data.members.forEach(function(id) {
               if (!self._members.hasOwnProperty(id)) {
@@ -150,7 +150,7 @@
               self._eventCbs[self._disconnectEvtName].call(null, data.id);
             }
             if (self._isReady()) {
-              self._ready();
+              self._triggerReady();
             }
           }
         }
@@ -228,7 +228,7 @@
       self._members[id].datachannel = datachannel;
 
       if (self._isReady()) {
-        self._ready();
+        self._triggerReady();
       }
     };
     datachannel.onmessage = function(event) {
@@ -282,7 +282,7 @@
     }
   };
 
-  Playrtc.prototype._ready = function() {
+  Playrtc.prototype._triggerReady = function() {
     var self = this;
     if (!self.ready) {
       self.ready = true;
