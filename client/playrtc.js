@@ -60,8 +60,8 @@
     return JSON.stringify({'kind':kind, 'data':data});
   }
 
-  function p2pUsrMsg(from, kind, data) {
-    return JSON.stringify({'from': from, 'kind':kind, 'data':data});
+  function p2pUsrMsg(kind, data) {
+    return JSON.stringify({'kind':kind, 'data':data});
   }
 
   function fwdAdminMsg(to, kind, data) {
@@ -172,7 +172,7 @@
 
     self.p2p.send = function(to, kind, data) {
       if (self._members.hasOwnProperty(to)) {
-        self._members[to].datachannel.send(p2pUsrMsg(self.id, kind, data));
+        self._members[to].datachannel.send(p2pUsrMsg(kind, data));
       } else {
         console.warn('Tried to send ' + kind + ' ' + JSON.stringify(data) + ' to a unknow member id: ' + to);
       }
@@ -180,7 +180,7 @@
 
     self.p2p.broadcast = function(kind, data) {
       self.members.forEach(function(id) {
-        self._members[id].datachannel.send(p2pUsrMsg(self.id, kind, data));
+        self._members[id].datachannel.send(p2pUsrMsg(kind, data));
       });
     };
 
@@ -232,7 +232,7 @@
       }
     };
     datachannel.onmessage = function(event) {
-      self._handleP2PMsg(event);
+      self._handleP2PMsg(event, id);
     };
 
   };
@@ -267,16 +267,16 @@
       };
 
       datachannel.onmessage = function(event) {
-        self._handleP2PMsg(event);
+        self._handleP2PMsg(event, id);
       };
     };
   };
 
-  Playrtc.prototype._handleP2PMsg = function(event) {
+  Playrtc.prototype._handleP2PMsg = function(event, from) {
     var self = this;
     var json = JSON.parse(event.data);
     if (self.p2p._msgCbs.hasOwnProperty(json.kind)) {
-      self.p2p._msgCbs[json.kind].call(null, json.from, json.data);
+      self.p2p._msgCbs[json.kind].call(null, from, json.data);
     } else {
       console.error('Received unknow P2P msg kind: ' + json.kind);
     }
