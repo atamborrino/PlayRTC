@@ -9,16 +9,16 @@ module.exports = function(grunt) {
         banner: '/*! <%= pkg.name %> <%= grunt.template.today("yyyy-mm-dd") %> */\n'
       },
       build: {
-        src: '<%= pkg.name %>.js',
-        dest: '<%= pkg.name %>.min.js'
+        src: 'client/<%= pkg.name %>.js',
+        dest: 'client/<%= pkg.name %>.min.js'
       }
     },
 
     copy: {
       main: {
         files: [
-          {src: ['playrtc.js'], dest: 'example/public/javascripts/'},
-          {src: ['playrtc.min.js'], dest: 'example/public/javascripts/'}
+          {src: ['client/playrtc.js'], dest: 'example/public/javascripts/'},
+          {src: ['client/playrtc.min.js'], dest: 'example/public/javascripts/'}
         ]
       }
     }

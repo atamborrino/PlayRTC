@@ -1,11 +1,26 @@
 {
   "name": "playrtc",
   "version": "0.1.0",
+  "description": "Client side part of PlayRTC",
+  "keywords": [
+    "WebRTC",
+    "datachannel",
+    "Websocket",
+    "Playframework",
+    "browser"
+  ],
+  "author": "Alexandre Tamborrino <tamborrino.alexandre@gmail.com>",
+  "homepage": "https://github.com/atamborrino/PlayRTC",
+  "dependencies" : {
+
+  },
   "devDependencies": {
     "grunt": "~0.4.1",
     "grunt-contrib-jshint": "~0.6.3",
     "grunt-contrib-nodeunit": "~0.2.0",
     "grunt-contrib-uglify": "~0.2.2",
     "grunt-contrib-copy": "~0.4.1"
-  }
+  },
+  "main": "client/playrtc.js",
+  "license": "Apache 2"
 }
