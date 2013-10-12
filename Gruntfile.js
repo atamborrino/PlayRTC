@@ -13,22 +13,32 @@ module.exports = function(grunt) {
         dest: 'client/<%= pkg.name %>.min.js'
       }
     },
-
+    jshint: {
+      all: {
+        src: ['client/<%= pkg.name %>.js']
+      }
+    },
     copy: {
       main: {
         files: [
-          {src: ['client/playrtc.js'], dest: 'example/public/javascripts/'},
-          {src: ['client/playrtc.min.js'], dest: 'example/public/javascripts/'}
+          {cwd:'client/', src: '*.js', expand: true, dest: 'example/public/javascripts/'}
         ]
       }
+    },
+    watch: {
+      all: {
+        files: ['client/playrtc.js'],
+        tasks: ['default']
+      }
     }
-    
   });
 
+  grunt.loadNpmTasks('grunt-contrib-watch');
+  grunt.loadNpmTasks('grunt-contrib-jshint');
   grunt.loadNpmTasks('grunt-contrib-uglify');
   grunt.loadNpmTasks('grunt-contrib-copy');
 
   // Default task(s).
-  grunt.registerTask('default', ['uglify', 'copy']);
+  grunt.registerTask('default', ['jshint', 'uglify', 'copy']);
 
 };

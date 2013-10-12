@@ -14,20 +14,26 @@
  * limitations under the License.
  */
 
-(function(window) {
+ (function (definition) {
+     if (typeof exports === "object") {
+         module.exports = definition();
+     } else {
+         window.Playrtc = definition();
+     }
+ })(function() {
+  'use strict';
+
   var playrtc = {};
 
   var DEFAULT_TURN_STUN_CONFIG = {'iceServers': [{'url': 'stun:stun.l.google.com:19302'}]};
-  var RTCPeerConnection = window.RTCPeerConnection 
-                          || window.webkitRTCPeerConnection 
-                          || window.mozRTCPeerConnection;
+  var RTCPeerConnection = window.RTCPeerConnection || window.webkitRTCPeerConnection || window.mozRTCPeerConnection;
 
   playrtc.isCompatible = function() {
     if (navigator.mozGetUserMedia) {
       console.warn('Firefox is not supported for now...');
       return false;
     } else if (navigator.webkitGetUserMedia){
-      webrtcDetectedVersion = parseInt(navigator.userAgent.match(/Chrom(e|ium)\/([0-9]+)\./)[2]);
+      var webrtcDetectedVersion = parseInt(navigator.userAgent.match(/Chrom(e|ium)\/([0-9]+)\./)[2], 10);
       if (webrtcDetectedVersion < 31) {
         console.warn('Only Chrome >= M31 is supported (due to the use of SCTP-based datachannels)');
         return false;
@@ -38,12 +44,12 @@
       console.warn('Your browser not supported...');
       return false;
     }
-  }
+  };
 
   playrtc.connect = function(url, config) {
     var webrtcConfig = config !== undefined ? config : DEFAULT_TURN_STUN_CONFIG;
     return new Playrtc(url, webrtcConfig);
-  }
+  };
 
   // Helper 
   function adminMsg(kind, data) {
@@ -69,7 +75,7 @@
     // public
     self.server = {};
     self.p2p = {};
-    self.id;
+    self.id = undefined;
     self.webrtcConfig = webrtcConfig;
     self.ready = false;
 
@@ -137,7 +143,7 @@
           if (self._members.hasOwnProperty(data.id)) {
             try {
               self._members[data.id].datachannel.close();
-              self._members[data.id].peerconn.close()
+              self._members[data.id].peerconn.close();
             } catch(err) {}
             delete self._members[data.id];
             if (self._eventCbs.hasOwnProperty(self._disconnectEvtName)) {
@@ -150,7 +156,7 @@
         }
 
       }
-    }
+    };
 
     self.server.onMsg = function(kind, cb) {
       self.server._msgCbs[kind] = cb;
@@ -183,13 +189,13 @@
   Object.defineProperty(Playrtc.prototype, "members", {
       get: function members() {
         var self = this;
-        var members = [];
+        var readyMembers = [];
         for(var id in self._members) {
           if (self._members.hasOwnProperty(id) && self._members[id].datachannel !== null) {
-            members.push(id);
+            readyMembers.push(id);
           }
         }
-        return members;
+        return readyMembers;
       }
     });
 
@@ -258,11 +264,11 @@
         self._members[id].datachannel = datachannel;
         if (self._eventCbs.hasOwnProperty(self._connectEvtName)) 
           self._eventCbs[self._connectEvtName].call(null, id);
-      }
+      };
 
       datachannel.onmessage = function(event) {
         self._handleP2PMsg(event);
-      }
+      };
     };
   };
 
@@ -297,5 +303,5 @@
     return ready;
   };
 
-  window.Playrtc = playrtc;
-})(window);
+  return playrtc;
+});
