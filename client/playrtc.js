@@ -75,7 +75,7 @@
     // public
     self.server = {};
     self.p2p = {};
-    self.id = undefined;
+    self.id = null; // will be init after
     self.webrtcConfig = webrtcConfig;
     self.ready = false;
 
