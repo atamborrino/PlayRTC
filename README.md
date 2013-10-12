@@ -7,7 +7,7 @@ PlayRTC gives you out-of-the-box rooms where members can send P2P messages to ea
 The P2P topology is for now * to * (every member is connected to every member). However you can build on top of this a custom topology. A future release may allow to define a custom topology *before* the P2P connection part to avoid making useless P2P connections.
 
 ## Client side
-You need to include ```playrtc.js``` or ```playrtc.min.js``` which exposes a global Playrtc object. For now you can find it in client/, a Bower and NPM version will be available soon.
+You need to include ```playrtc.js``` or ```playrtc.min.js``` which exposes a global Playrtc object. For now you can find it in ```client/```, a Bower and NPM version will be available soon.
 ```js
 var io = Playrtc.connect('ws://<your_websocket_endpoint>');
 var p2p = io.p2p;
