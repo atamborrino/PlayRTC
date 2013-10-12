@@ -23,12 +23,12 @@
  })(function() {
   'use strict';
 
-  var playrtc = {};
+  var Playrtc = {};
 
   var DEFAULT_TURN_STUN_CONFIG = {'iceServers': [{'url': 'stun:stun.l.google.com:19302'}]};
   var RTCPeerConnection = window.RTCPeerConnection || window.webkitRTCPeerConnection || window.mozRTCPeerConnection;
 
-  playrtc.isCompatible = function() {
+  Playrtc.isCompatible = function() {
     if (navigator.mozGetUserMedia) {
       console.warn('Firefox is not supported for now...');
       return false;
@@ -46,9 +46,9 @@
     }
   };
 
-  playrtc.connect = function(url, config) {
+  Playrtc.connect = function(url, config) {
     var webrtcConfig = config !== undefined ? config : DEFAULT_TURN_STUN_CONFIG;
-    return new Playrtc(url, webrtcConfig);
+    return new Io(url, webrtcConfig);
   };
 
   // Helper 
@@ -69,7 +69,7 @@
   }
 
   // Main object
-  function Playrtc(url, webrtcConfig) {
+  function Io(url, webrtcConfig) {
     var self = this;
 
     // public
@@ -186,7 +186,7 @@
 
   }
 
-  Object.defineProperty(Playrtc.prototype, "members", {
+  Object.defineProperty(Io.prototype, "members", {
       get: function members() {
         var self = this;
         var readyMembers = [];
@@ -199,11 +199,11 @@
       }
     });
 
-  Playrtc.prototype.on = function(event, cb) {
+  Io.prototype.on = function(event, cb) {
     this._eventCbs[event] = cb;
   };
 
-  Playrtc.prototype._initiateWebRtcHandshake = function(id) {
+  Io.prototype._initiateWebRtcHandshake = function(id) {
     var self = this;
 
     var memberPeerConn = new RTCPeerConnection(self.webrtcConfig, {optional: [{DtlsSrtpKeyAgreement: true}]});
@@ -222,7 +222,7 @@
 
     self._members[id] = {'peerconn': memberPeerConn, 'datachannel': null};
 
-    var datachannel = memberPeerConn.createDataChannel('playrtc', {reliable : true});
+    var datachannel = memberPeerConn.createDataChannel('Playrtc', {reliable : true});
 
     datachannel.onopen = function(event) {
       self._members[id].datachannel = datachannel;
@@ -237,7 +237,7 @@
 
   };
 
-  Playrtc.prototype._answerWebRtcHandshake = function(id, sdp) {
+  Io.prototype._answerWebRtcHandshake = function(id, sdp) {
     var self = this;
 
     var memberPeerConn = new RTCPeerConnection(self.webrtcConfig, {optional: [{DtlsSrtpKeyAgreement: true}]});
@@ -272,7 +272,7 @@
     };
   };
 
-  Playrtc.prototype._handleP2PMsg = function(event, from) {
+  Io.prototype._handleP2PMsg = function(event, from) {
     var self = this;
     var json = JSON.parse(event.data);
     if (self.p2p._msgCbs.hasOwnProperty(json.kind)) {
@@ -282,7 +282,7 @@
     }
   };
 
-  Playrtc.prototype._triggerReady = function() {
+  Io.prototype._triggerReady = function() {
     var self = this;
     if (!self.ready) {
       self.ready = true;
@@ -292,7 +292,7 @@
     }
   };
 
-  Playrtc.prototype._isReady = function() {
+  Io.prototype._isReady = function() {
     var self = this;
     var ready = true;
     self._initialMembers.forEach(function (initMemberId) {
@@ -303,5 +303,5 @@
     return ready;
   };
 
-  return playrtc;
+  return Playrtc;
 });
