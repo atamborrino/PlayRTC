@@ -15,7 +15,7 @@
  */
 
  (function (definition) {
-     if (typeof exports === "object") {
+     if (typeof exports === 'object') {
          module.exports = definition();
      } else {
          window.Playrtc = definition();
@@ -41,7 +41,7 @@
         return true;
       }
     } else {
-      console.warn('Your browser not supported...');
+      console.warn('Your browser is not supported...');
       return false;
     }
   };
@@ -64,7 +64,7 @@
     return JSON.stringify({'from': from, 'kind':kind, 'data':data});
   }
 
-  function fwdMsg(to, kind, data) {
+  function fwdAdminMsg(to, kind, data) {
     return JSON.stringify({'adminKind': 'fwd', 'data': {'to':to, 'msg': {'adminKind': kind, 'data': data}}});
   }
 
@@ -209,13 +209,13 @@
     var memberPeerConn = new RTCPeerConnection(self.webrtcConfig, {optional: [{DtlsSrtpKeyAgreement: true}]});
     memberPeerConn.onicecandidate = function(iceEvt) {
       if (iceEvt.candidate) {
-        self._ws.send(fwdMsg(id, 'iceCandidate', {'from': self.id,'candidate': iceEvt.candidate}));
+        self._ws.send(fwdAdminMsg(id, 'iceCandidate', {'from': self.id,'candidate': iceEvt.candidate}));
       }
     };
     memberPeerConn.onnegotiationneeded = function() {
       memberPeerConn.createOffer(function(desc){
         memberPeerConn.setLocalDescription(desc, function() {
-          self._ws.send(fwdMsg(id, 'sdpOffer', {'from':self.id, 'sdp': desc}));
+          self._ws.send(fwdAdminMsg(id, 'sdpOffer', {'from':self.id, 'sdp': desc}));
         });
       });
     };
@@ -245,14 +245,14 @@
 
     memberPeerConn.onicecandidate = function(iceEvt) {
       if (iceEvt.candidate) {
-        self._ws.send(fwdMsg(id, 'iceCandidate', {'from': self.id,'candidate': iceEvt.candidate}));
+        self._ws.send(fwdAdminMsg(id, 'iceCandidate', {'from': self.id,'candidate': iceEvt.candidate}));
       }
     };
 
     memberPeerConn.setRemoteDescription(new RTCSessionDescription(sdp), function() { 
       memberPeerConn.createAnswer(function(desc) {
         memberPeerConn.setLocalDescription(desc, function() {
-          self._ws.send(fwdMsg(id, 'sdpAnswer', {'from': self.id,'sdp': desc}));
+          self._ws.send(fwdAdminMsg(id, 'sdpAnswer', {'from': self.id,'sdp': desc}));
         });
       });
     });
