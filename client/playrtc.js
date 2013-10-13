@@ -23,6 +23,8 @@
  })(function() {
   'use strict';
 
+  var BackboneEvents = window.BackboneEvents || require('backbone-events-standalone');
+
   var Playrtc = {};
 
   var DEFAULT_TURN_STUN_CONFIG = {'iceServers': [{'url': 'stun:stun.l.google.com:19302'}]};
@@ -47,7 +49,8 @@
   };
 
   Playrtc.connect = function(url, config) {
-    var webrtcConfig = config !== undefined ? config : DEFAULT_TURN_STUN_CONFIG;
+    config = config || {};
+    var webrtcConfig = config.webrtcConfig !== undefined ? config.webrtcConfig : DEFAULT_TURN_STUN_CONFIG;
     return new Io(url, webrtcConfig);
   };
 
@@ -73,8 +76,8 @@
     var self = this;
 
     // public
-    self.server = {};
-    self.p2p = {};
+    self.server = BackboneEvents.mixin({});
+    self.p2p = BackboneEvents.mixin({});
     self.id = null; // will be init after
     self.webrtcConfig = webrtcConfig;
     self.ready = false;
@@ -83,23 +86,13 @@
     self._members = {}; // id -> {'peerconn': ..., 'datachannel': ...}
     self._initialMembers = [];
     self._ws = new WebSocket(url);
-    self._eventCbs = {};
-    self._readyEvtName = 'ready';
-    self._connectEvtName = 'newMember';
-    self._disconnectEvtName = 'memberLeft';
-    self.server._msgCbs = {}; // WS user callbacks
-    self.p2p._msgCbs = {}; // P2P user callbacks
 
     self._ws.onmessage = function(event) {
       // console.log(event.data);
       var json = JSON.parse(event.data);
       if (json.hasOwnProperty('kind')) {
         // user kind
-        if (self.server._msgCbs.hasOwnProperty(json.kind)) {
-          self.server._msgCbs[json.kind].call(null, json.data);
-        } else {
-          console.error('Received unknow kind: ' + json.kind);
-        }
+	self.server.trigger(json.kind, json.data);
       } else {
         // admin kind
         var kind = json.adminKind;
@@ -146,9 +139,7 @@
               self._members[data.id].peerconn.close();
             } catch(err) {}
             delete self._members[data.id];
-            if (self._eventCbs.hasOwnProperty(self._disconnectEvtName)) {
-              self._eventCbs[self._disconnectEvtName].call(null, data.id);
-            }
+	    self.trigger('memberleft', data.id);
             if (self._isReady()) {
               self._triggerReady();
             }
@@ -158,16 +149,8 @@
       }
     };
 
-    self.server.onMsg = function(kind, cb) {
-      self.server._msgCbs[kind] = cb;
-    };
-
     self.server.send = function(kind, data) {
       self._ws.send(usrMsg(kind, data));
-    };
-
-    self.p2p.onMsg = function(kind, cb) {
-      self.p2p._msgCbs[kind] = cb;
     };
 
     self.p2p.send = function(to, kind, data) {
@@ -186,6 +169,8 @@
 
   }
 
+  BackboneEvents.mixin(Io.prototype);
+
   Object.defineProperty(Io.prototype, "members", {
       get: function members() {
         var self = this;
@@ -198,10 +183,6 @@
         return readyMembers;
       }
     });
-
-  Io.prototype.on = function(event, cb) {
-    this._eventCbs[event] = cb;
-  };
 
   Io.prototype._initiateWebRtcHandshake = function(id) {
     var self = this;
@@ -262,8 +243,7 @@
 
       datachannel.onopen = function(event) {
         self._members[id].datachannel = datachannel;
-        if (self._eventCbs.hasOwnProperty(self._connectEvtName)) 
-          self._eventCbs[self._connectEvtName].call(null, id);
+	self.trigger('newmember', id);
       };
 
       datachannel.onmessage = function(event) {
@@ -275,11 +255,7 @@
   Io.prototype._handleP2PMsg = function(event, from) {
     var self = this;
     var json = JSON.parse(event.data);
-    if (self.p2p._msgCbs.hasOwnProperty(json.kind)) {
-      self.p2p._msgCbs[json.kind].call(null, from, json.data);
-    } else {
-      console.error('Received unknow P2P msg kind: ' + json.kind);
-    }
+    self.p2p.trigger(json.kind, from, json.data);
   };
 
   Io.prototype._triggerReady = function() {
@@ -287,8 +263,7 @@
     if (!self.ready) {
       self.ready = true;
       self._ws.send(adminMsg('ready', null));
-      if (self._eventCbs.hasOwnProperty(self._readyEvtName)) 
-        self._eventCbs[self._readyEvtName].call(null);
+      self.trigger('ready');
     }
   };
 

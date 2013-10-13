@@ -18,30 +18,30 @@ $("#connect").click(function() {
       server.send('processThenBroadcast', 'some data');
     });
 
-    p2p.onMsg('ping', function(from, data) {
+    p2p.on('ping', function(from, data) {
       trace('P2P ping msg from ' + from +': ' + data.msg);
       var to = from;
       p2p.send(to, 'pong', {'msg': 'pongmsg'});
     });
 
-    p2p.onMsg('pong', function(from, data) {
+    p2p.on('pong', function(from, data) {
       trace('P2P pong msg from ' + from +': ' + data.msg);
     });
 
-    server.onMsg('pong', function(data) {
+    server.on('pong', function(data) {
       trace('Server Pong msg: ' + data.msg);
     });
 
     // Other control events
-    io.on('newMember', function(id) {
+    io.on('newmember', function(id) {
       trace('New member: ' + id);
     });
 
-    io.on('memberLeft', function(id) {
+    io.on('memberleft', function(id) {
       trace('Member left: ' + id);
     });
 
-    server.onMsg('broadcastedFromServer', function(data) {
+    server.on('broadcastedFromServer', function(data) {
       trace('Broadcasted data from server: ' + data.processedData)
     });
     

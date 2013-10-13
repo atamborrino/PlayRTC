@@ -11,7 +11,9 @@
   ],
   "author": "Alexandre Tamborrino <tamborrino.alexandre@gmail.com>",
   "homepage": "https://github.com/atamborrino/PlayRTC",
-  "dependencies": {},
+  "dependencies": {
+    "backbone-events-standalone": "0.1.5"
+  },
   "devDependencies": {
     "grunt": "~0.4.1",
     "grunt-contrib-jshint": "~0.6.4",
