@@ -8,7 +8,7 @@ The P2P topology is for now \* to \* (every member is connected to every member)
 
 ## Client side
 You need to include ```playrtc.js``` (or ```playrtc.min.js```) which exposes a global ```Playrtc``` object. You can find it in ```client/``` (a Bower and NPM/Browserify version will be available soon).
-Its depends on [backbone-events-standalone](https://github.com/n1k0/backbone-events-standalone), so make sure to include ```backbone-events-standalone.js``` too.
+It depends on [backbone-events-standalone](https://github.com/n1k0/backbone-events-standalone), so make sure to include ```backbone-events-standalone.js``` too.
 
 ```js
 var io = Playrtc.connect('ws://<your_websocket_endpoint>');
