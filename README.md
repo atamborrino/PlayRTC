@@ -23,7 +23,7 @@ var server = io.server;
 ```Playrtc.isCompatible()``` return true if the browser is compatible with SCTP Data Channels.
 
 ### io
-```io``` is a event emitter object that emits all the room-related control events.
+```io``` is an event emitter object that emits all the room-related control events.
 
 ```js
 io.on('ready', function() {
@@ -79,6 +79,7 @@ p2p.on('pong', function(from, data) {
 });
 ```
 
+  
 Take a look at [main.js](https://github.com/atamborrino/PlayRTC/blob/master/example/app/assets/javascripts/main.js) in the example app folder for an all-together example.
 
 ## Server side
