@@ -45,9 +45,9 @@ ghPublish := {
     val commitMsg = "Publish " + publishRef
     if (Process(Seq("git", "commit",  "-m", commitMsg), mavenRepoFile).! == 0) {
       if (Process("git push", mavenRepoFile).! == 0) {
-        println(publishRef + " has been sucessfully published to your Github maven repo.")
+        println("\n" + publishRef + " has been sucessfully published to your Github maven repo.")
       } else {
-        println("Error during git push. Please retry.")
+        println("\nError during git push. Please retry.")
       }
     } else {
       println("\nNothing new to publish to your Github maven repo: it seems that your Github repo is up-to-date.")
