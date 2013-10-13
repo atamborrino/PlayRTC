@@ -33,7 +33,7 @@ import akka.util.Timeout
 import play.api.libs.concurrent.Akka
 
 // User (public) messages
-case class Msg(kind: String, data: JsValue)
+case class Msg(event: String, data: JsValue)
 object Msg {
   implicit val read = Json.reads[Msg]
   implicit val write = Json.writes[Msg]
@@ -49,7 +49,7 @@ case class Member(id: String, val receiver: ActorRef, val sender: ActorRef)
 
 // Admin messages
 object Admin {
-  case class Msg(adminKind: String, data: JsValue)
+  case class Msg(adminEvent: String, data: JsValue)
   object Msg {
     implicit val read = Json.reads[Admin.Msg]
     implicit val write = Json.writes[Admin.Msg]
@@ -193,20 +193,20 @@ class Supervisor extends Actor {
   def receive = {
     case m @ Send(to, _) => members.get(to).foreach(_.sender ! m)
     case Broadcast(m) => members foreach {
-      case (id, member) => member.sender ! Send(id, Msg(m.kind, m.data))
+      case (id, member) => member.sender ! Send(id, Msg(m.event, m.data))
     }
     
-    case Admin.Send(to, Admin.Msg(kind @ "initInfo", js: JsObject)) =>
+    case Admin.Send(to, Admin.Msg(event @ "initInfo", js: JsObject)) =>
       wsMembers.get(to) foreach { member =>
         val ids = Json.obj("members" -> wsMembers.keySet.diff(notYetInitiatedMembers))
-        member.sender ! Admin.Send(to, Admin.Msg(kind, js ++ ids))
+	member.sender ! Admin.Send(to, Admin.Msg(event, js ++ ids))
         notYetInitiatedMembers -= to
       }
       
     case m @ Admin.Send(to, _) => wsMembers.get(m.to).foreach(_.sender ! m)
     
     case Admin.Broadcast(m) => wsMembers foreach {
-      case (id, member) => member.sender ! Admin.Send(id, Admin.Msg(m.adminKind, m.data))
+      case (id, member) => member.sender ! Admin.Send(id, Admin.Msg(m.adminEvent, m.data))
     }
     
     case Admin.Ready(id) =>
