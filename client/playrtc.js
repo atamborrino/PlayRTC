@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
- (function (definition) {
-     if (typeof exports === 'object') {
-         module.exports = definition();
-     } else {
-         window.Playrtc = definition();
-     }
- })(function() {
+(function (definition) {
+  if (typeof exports === 'object') {
+     module.exports = definition();
+  } else {
+     window.Playrtc = definition();
+  }
+})(function() {
   'use strict';
 
   var BackboneEvents = window.BackboneEvents || require('backbone-events-standalone');
@@ -91,18 +91,18 @@
       // console.log(evt.data);
       var json = JSON.parse(evt.data);
       if (json.hasOwnProperty('event')) {
-	// user event
-	self.server.trigger(json.event, json.data);
+        // user event
+        self.server.trigger(json.event, json.data);
       } else {
-	// admin event
-	var event = json.adminEvent;
-	var data = json.data;
+      // admin event
+      var event = json.adminEvent;
+      var data = json.data;
 
-	if (event === 'initInfo') {
-	  self.id = data.id; // receveid own id
-	  self._initialMembers = data.members;
-	  if (data.members.length === 0) {
-            self._triggerReady();
+      if (event === 'initInfo') {
+        self.id = data.id; // receveid own id
+        self._initialMembers = data.members;
+        if (data.members.length === 0) {
+                self._triggerReady();
           } else {
             data.members.forEach(function(id) {
               if (!self._members.hasOwnProperty(id)) {
@@ -116,15 +116,15 @@
             }, data.hbInterval);
         }
 
-	else if (event === 'sdpOffer') {
+        else if (event === 'sdpOffer') {
           self._answerWebRtcHandshake(data.from, data.sdp);
         }
 
-	else if (event === 'sdpAnswer') {
+        else if (event === 'sdpAnswer') {
           self._members[data.from].peerconn.setRemoteDescription(new RTCSessionDescription(data.sdp));
         }
 
-	else if(event === 'iceCandidate') {
+        else if(event === 'iceCandidate') {
           if (self._members.hasOwnProperty(data.from)) {
             self._members[data.from].peerconn.addIceCandidate(new RTCIceCandidate(data.candidate));
           } else {
@@ -132,14 +132,14 @@
           }
         }
 
-	else if (event === 'disconnect') {
+        else if (event === 'disconnect') {
           if (self._members.hasOwnProperty(data.id)) {
             try {
               self._members[data.id].datachannel.close();
               self._members[data.id].peerconn.close();
             } catch(err) {}
             delete self._members[data.id];
-	    self.trigger('memberleft', data.id);
+            self.trigger('memberleft', data.id);
             if (self._isReady()) {
               self._triggerReady();
             }
@@ -155,15 +155,15 @@
 
     self.p2p.send = function(to, event, data) {
       if (self._members.hasOwnProperty(to)) {
-	self._members[to].datachannel.send(p2pUsrMsg(event, data));
+        self._members[to].datachannel.send(p2pUsrMsg(event, data));
       } else {
-	console.warn('Tried to send ' + event + ' ' + JSON.stringify(data) + ' to a unknow member id: ' + to);
+        console.warn('Tried to send ' + event + ' ' + JSON.stringify(data) + ' to a unknow member id: ' + to);
       }
     };    
 
     self.p2p.broadcast = function(event, data) {
       self.members.forEach(function(id) {
-	self._members[id].datachannel.send(p2pUsrMsg(event, data));
+        self._members[id].datachannel.send(p2pUsrMsg(event, data));
       });
     };
 
@@ -242,12 +242,12 @@
       var datachannel = evt.channel;
 
       datachannel.onopen = function(evt) {
-	self._members[id].datachannel = datachannel;
-	self.trigger('newmember', id);
+        self._members[id].datachannel = datachannel;
+        self.trigger('newmember', id);
       };
 
       datachannel.onmessage = function(evt) {
-	self._handleP2PMsg(evt, id);
+        self._handleP2PMsg(evt, id);
       };
     };
   };
