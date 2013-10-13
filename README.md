@@ -7,47 +7,79 @@ PlayRTC gives you out-of-the-box rooms where members can send P2P messages to ea
 The P2P topology is for now \* to \* (every member is connected to every member). However you can build a custom topology (an overlay network) on top of this. A future version may allow to define a custom topology *before* the P2P connection part to avoid making useless P2P connections.
 
 ## Client side
-You need to include ```playrtc.js``` or ```playrtc.min.js``` which exposes a global Playrtc object. For now you can find it in ```client/```, a Bower and NPM version will be available soon.
+You need to include ```playrtc.js``` (or ```playrtc.min.js```) which exposes a global ```Playrtc``` object. You can find it in ```client/``` (a Bower and NPM/Browserify version will be available soon).
+Its depends on [backbone-events-standalone](https://github.com/n1k0/backbone-events-standalone), so make sure to include ```backbone-events-standalone.js``` too.
+
 ```js
 var io = Playrtc.connect('ws://<your_websocket_endpoint>');
 var p2p = io.p2p;
 var server = io.server;
+```
 
+```io```, ```p2p``` and ```server``` are Event Emitters extending the Backbone.Events model. Take a look [there](http://backbonejs.org/#Events) to see all the methods that you can use with a Backbone event emitter.
+
+```Playrtc.connect(wsEndpoint, config)``` can optionally take a ```config``` object. ```config.webrtcConfig``` allows to define a custom Webrtc config (default to ```{'iceServers': [{'url': 'stun:stun.l.google.com:19302'}]}```).
+
+```Playrtc.isCompatible()``` return true if the browser is compatible with SCTP Data Channels.
+
+### io
+```io``` is a event emitter object that emits all the room-related control events.
+
+```js
 io.on('ready', function() {
-  // Connected to the server and to every other members
+  // Connected to the server and to every other members (P2P connection phase finished)
   trace('My id: ' + io.id);
   trace('Other members: ' + io.members); // Array of other member ids
-
-  var data = {'msg': 'pingmsg'};
-  server.send('ping', data); // Send to server
-  p2p.broadcast('ping', data); // P2P broadcast to all other members
 });
 
-p2p.onMsg('ping', function(from, data) {
+io.on('newmember', function(id) {
+  trace('New member: ' + id);
+});
+
+io.on('memberleft', function(id) {
+  trace('Member left: ' + id);
+});
+```
+
+### server
+```server``` is an event emitter object that emits events (messages) coming from the server.
+
+```server.send(eventName, data)``` allows to send a message to the server.
+
+```js
+io.on('ready', function() {
+  server.send('ping', {'msg': 'pingmsg'});
+});
+
+server.on('pong', function(data) {
+  trace('Server Pong msg: ' + data.msg);
+});
+```
+
+### p2p
+```p2p``` is an event emitter object that emits events (messages) coming from peers.
+
+```p2p.send(peerId, eventName, data)``` allows to send a P2P message to a peer.
+
+```p2p.broadcast(eventName, data)``` allows to broadcast a P2P message to all other room members.
+
+```js
+io.on('ready', function() {
+  p2p.broadcast('ping', {'msg': 'pingmsg'});
+});
+
+p2p.on('ping', function(from, data) {
   trace('P2P ping msg from ' + from +': ' + data.msg);
   var to = from;
   p2p.send(to, 'pong', {'msg': 'pongmsg'});
 });
 
-p2p.onMsg('pong', function(from, data) {
+p2p.on('pong', function(from, data) {
   trace('P2P pong msg from ' + from +': ' + data.msg);
-});
-
-server.onMsg('pong', function(data) {
-  trace('Server Pong msg: ' + data.msg);
-});
-
-// Other control events
-io.on('newMember', function(id) {
-  trace('New member: ' + id);
-});
-
-io.on('memberLeft', function(id) {
-  trace('Member left: ' + id);
 });
 ```
 
-You can use the function ```Playrtc.isCompatible()``` to detect if the browser is compatible with SCTP Data Channels.
+Take a look at [main.js](https://github.com/atamborrino/PlayRTC/blob/master/example/app/assets/javascripts/main.js) in the example app folder for an all-together example.
 
 ## Server side
 The server side code is heavily inspired by [play-actor-room](https://github.com/mandubian/play-actor-room). PlayRTC was originally on top of it, but as I found myself re-writing many internal stuffs to adapt it to PlayRTC, I eventually ended up re-writing the code parts of play-actor-room that PlayRTC is using.
