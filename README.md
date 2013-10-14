@@ -4,7 +4,7 @@
 
 PlayRTC gives you out-of-the-box rooms where members can send P2P messages to each other via WebRTC SCTP Data Channels, and communicate with the server via Websocket. It also provides automatic heartbeats.
 
-The P2P topology is for now \* to \* (every member is connected to every member). However you can build a custom topology (an overlay network) on top of this. A future version may allow to define a custom topology *before* the P2P connection part to avoid making useless P2P connections.
+The P2P topology is for now \* to \* (every member is connected to every member). However you can build a custom topology (an overlay network) on top of this. A future version may allow to define a custom topology *before* the P2P connection part to avoid establishing useless P2P connections.
 
 ## Client side
 You need to include ```playrtc.js``` (or ```playrtc.min.js```) which exposes a global ```Playrtc``` object. You can find it in ```client/``` (a Bower and NPM/Browserify version will be available soon).
