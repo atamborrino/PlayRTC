@@ -41,6 +41,10 @@ io.on('memberleft', function(id) {
 });
 ```
 
+```io.id``` is the member id (string).
+
+```io.members``` is an array of the other room member ids
+
 ### server
 ```server``` is an event emitter object that emits events (messages) coming from the server.
 
@@ -188,7 +192,7 @@ val room = Room(Props[MySupervisor])
 
 ## Browser support
 - Chrome M31+
-- Firefox soon, as soon as the SCTP Data channel interop with Chrome works (see [this Chrome's bug](https://code.google.com/p/chromium/issues/detail?id=295771))
+- Firefox soon
 
 ## License
 This software is licensed under the Apache 2 license, quoted below.
