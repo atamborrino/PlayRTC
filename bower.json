@@ -1,0 +1,20 @@
+{
+  "name": "playrtc",
+  "version": "0.1.1",
+  "main": "client/playrtc.js",
+  "ignore": [
+    ".*",
+    "example/",
+    "node_modules/",
+    "project/",
+    "src/",
+    "target/",
+    "build.sbt",
+    "package.json",
+    "Gruntfile.js",
+    "*.sublime-*"
+  ],
+  "dependencies": {
+    "backbone-events-standalone": "0.1.5"
+  }
+}
