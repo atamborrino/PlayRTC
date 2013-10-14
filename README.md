@@ -10,8 +10,9 @@ The P2P topology is for now \* to \* (every member is connected to every member)
 You need to include ```playrtc.js``` (or ```playrtc.min.js```) which exposes a global ```Playrtc``` object. You can find it in ```client/``` (a Bower and NPM/Browserify version will be available soon).
 It depends on [backbone-events-standalone](https://github.com/n1k0/backbone-events-standalone), so make sure to include ```backbone-events-standalone.js``` too.
 
+To connect to a room, do:
 ```js
-var io = Playrtc.connect('ws://<your_websocket_endpoint>');
+var io = Playrtc.connect('ws://<your_websocket_endpoint_for_a_particular_room>');
 var p2p = io.p2p;
 var server = io.server;
 ```
