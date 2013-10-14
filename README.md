@@ -154,7 +154,7 @@ def websocket = WebSocket.using { req =>
 }
 ```
 
-```websocket[MyReceiver](userid)``` returns a ```(Iteratee[JsValue, Unit], Enumerator[JsValue])```. Note that if you want to use custom Props, you can use ```websocket(userid, myReceiverProps)```.
+Note that if you want to use custom Akka Props, you can use ```websocket(userid, myReceiverProps)```. ```websocket[MyReceiver](userid)``` returns a ```(Iteratee[JsValue, Unit], Enumerator[JsValue])```, but if it scares you don't worry, you don't have to deal with it.
 
 But your app usually needs several rooms. To do this you can for example create an actor that stores a map of roomId -> room, and then ask him for the room of id = roomdId. In thise case you will retrieve a room asynchronously:
 ```scala
