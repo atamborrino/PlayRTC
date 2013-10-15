@@ -3,7 +3,6 @@
   "version": "0.1.1",
   "main": "client/playrtc.js",
   "ignore": [
-    ".*",
     "example/",
     "node_modules/",
     "project/",
