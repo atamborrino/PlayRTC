@@ -7,9 +7,20 @@ PlayRTC gives you out-of-the-box rooms where members can send P2P messages to ea
 The P2P topology is for now \* to \* (every member is connected to every member). However, if you need to, you can build a custom topology (an overlay network) on top of this. A future version may allow to define a custom topology *before* the P2P connection part to avoid establishing useless P2P connections.
 
 ## Client side
-You need to include ```playrtc.js``` (or ```playrtc.min.js```) which exposes a global ```Playrtc``` object. You can find it in ```client/``` (a Bower and NPM/Browserify version will be available soon).
-It depends on [backbone-events-standalone](https://github.com/n1k0/backbone-events-standalone), so make sure to include ```backbone-events-standalone.js``` too.
+```playrtc.js``` depends on [backbone-events-standalone](https://github.com/n1k0/backbone-events-standalone) and exposes a global ```Playrtc``` object.
+### Installation
+#### Standard include (take ```playrtc.js``` or ```playrtc.min.js``` from ```client/```)
+```html
+<script type="text/javascript" src="/assets/javascripts/backbone-events-standalone.min.js"></script>
+<script type="text/javascript" src="/assets/javascripts/playrtc.js"></script>
+```
+#### Bower
+```bower install playrtc```
 
+#### NPM/Browserify
+```npm install playrtc```
+
+### Use it
 To connect to a room, do:
 ```js
 var io = Playrtc.connect('ws://<your_websocket_endpoint_for_a_particular_room>');
@@ -23,7 +34,7 @@ var server = io.server;
 
 ```Playrtc.isCompatible()``` return true if the browser is compatible with SCTP Data Channels.
 
-### io
+#### io
 ```io``` is an event emitter object that emits all the room-related control events.
 
 ```js
@@ -46,7 +57,7 @@ io.on('memberleft', function(id) {
 
 ```io.members``` is an array of the other room member ids
 
-### server
+#### server
 ```server``` is an event emitter object that emits events (messages) coming from the server.
 
 ```server.send(eventName, data)``` allows to send a message to the server.
@@ -61,7 +72,7 @@ server.on('pong', function(data) {
 });
 ```
 
-### p2p
+#### p2p
 ```p2p``` is an event emitter object that emits events (messages) coming from peers.
 
 ```p2p.send(peerId, eventName, data)``` allows to send a P2P message to a peer.
