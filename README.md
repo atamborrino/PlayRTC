@@ -9,7 +9,8 @@ The P2P topology is for now \* to \* (every member is connected to every member)
 ## Client side
 ```playrtc.js``` depends on [backbone-events-standalone](https://github.com/n1k0/backbone-events-standalone) and exposes a global ```Playrtc``` object.
 ### Installation
-#### Standard include (take ```playrtc.js``` or ```playrtc.min.js``` from ```client/```)
+#### Standard include
+Take ```playrtc.js``` or ```playrtc.min.js``` from ```client/```
 ```html
 <script type="text/javascript" src="/assets/javascripts/backbone-events-standalone.min.js"></script>
 <script type="text/javascript" src="/assets/javascripts/playrtc.js"></script>
