@@ -1,9 +1,9 @@
 name := "playrtc-example"
 
-version := "0.1-SNAPSHOT"
+version := "0.1.0"
 
 libraryDependencies ++= Seq(
-  "com.github.atamborrino" %% "playrtc" % "0.1-SNAPSHOT"
+  "com.github.atamborrino" %% "playrtc" % "0.1.+"
 )     
 
 resolvers ++= Seq(

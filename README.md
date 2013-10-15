@@ -94,8 +94,8 @@ As in [play-actor-room](https://github.com/mandubian/play-actor-room), each memb
 
 Add the following resolver and library to your build.sbt:
 ```scala
-resolvers += "Atamborrino repository snapshots" at "https://github.com/atamborrino/maven-atamborrino/raw/master/snapshots/"
-libraryDependencies += "com.github.atamborrino" %% "playrtc" % "0.1-SNAPSHOT"
+resolvers += "Atamborrino repository releases" at "https://github.com/atamborrino/maven-atamborrino/raw/master/releases/"
+libraryDependencies += "com.github.atamborrino" %% "playrtc" % "0.1.+"
 ```
 
 Then, you must define a receiver to handle incoming messages:
