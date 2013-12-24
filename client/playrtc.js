@@ -22,7 +22,6 @@
   }
 })(function() {
   'use strict';
-
   var BackboneEvents = window.BackboneEvents || require('backbone-events-standalone');
 
   var Playrtc = {};
@@ -37,15 +36,15 @@
       // console.warn('Firefox is not supported for now...');
       var firefoxDetectedVersion = parseInt(navigator.userAgent.match(/Firefox\/([0-9]+)\./)[1], 10);
       if (firefoxDetectedVersion < 27) {
-	console.warn('Only Firefox >= 27 is supported (due to the use of SCTP-based datachannels and interop with Chrome)');
-	return false;
+        console.warn('Only Firefox >= 27 is supported (due to the use of SCTP-based datachannels and interop with Chrome)');
+        return false;
       } else {
-	return true;
+        return true;
       }
     } else if (navigator.webkitGetUserMedia){
       var webkitDetectedVersion = parseInt(navigator.userAgent.match(/Chrom(e|ium)\/([0-9]+)\./)[2], 10);
-      if (webkitDetectedVersion < 31) {
-	console.warn('Only Chrome >= 32 is supported (due to the use of SCTP-based datachannels and interop with Firefox)');
+      if (webkitDetectedVersion < 32) {
+        console.warn('Only Chrome >= 32 is supported (due to the use of SCTP-based datachannels and interop with Firefox)');
         return false;
       } else {
         return true;
@@ -105,11 +104,11 @@
       var event = json.adminEvent;
       var data = json.data;
 
-      if (event === 'initInfo') {
-        self.id = data.id; // receveid own id
-        self._initialMembers = data.members;
-        if (data.members.length === 0) {
-                self._triggerReady();
+        if (event === 'initInfo') {
+          self.id = data.id; // receveid own id
+          self._initialMembers = data.members;
+          if (data.members.length === 0) {
+              self._triggerReady();
           } else {
             data.members.forEach(function(id) {
               if (!self._members.hasOwnProperty(id)) {
@@ -119,8 +118,8 @@
           }
           // heartbeat
           setInterval(function() {
-               self._ws.send(adminMsg('hb', null)); 
-            }, data.hbInterval);
+            self._ws.send(adminMsg('hb', null)); 
+          }, data.hbInterval);
         }
 
         else if (event === 'sdpOffer') {
@@ -218,7 +217,7 @@
 
     memberPeerConn.createOffer(function(desc) {
       memberPeerConn.setLocalDescription(desc, function() {
-	self._ws.send(fwdAdminMsg(id, 'sdpOffer', {'from':self.id, 'sdp': desc}));
+        self._ws.send(fwdAdminMsg(id, 'sdpOffer', {'from':self.id, 'sdp': desc}));
       });
     }, function(err) {
       console.err("Error while creating WebRTC offer");
@@ -244,7 +243,7 @@
           self._ws.send(fwdAdminMsg(id, 'sdpAnswer', {'from': self.id,'sdp': desc}));
         });
       }, function(err) {
-	console.err("Error while creating WebRTC answer");
+        console.err("Error while creating WebRTC answer");
       });
     });
 

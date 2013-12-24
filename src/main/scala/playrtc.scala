@@ -74,7 +74,6 @@ class Receiver(id: String) extends Actor {
   
   val HB_INTERVAL = 7 seconds
   val HB_DELAY = 3 seconds
-  val log = Logging(system, Receiver.this)
   private var hbTimeout: Option[Cancellable] = None
     
   def receive = {
@@ -91,11 +90,9 @@ class Receiver(id: String) extends Actor {
     
     case Admin.StartTimeout =>
       hbTimeout = Some(system.scheduler.scheduleOnce(2*HB_DELAY + HB_INTERVAL, self, Admin.HbTimeout))
-    
   }
   
   private def handleAdminMsg(msg: Admin.Msg): Unit = msg match {
-    
     case Admin.Msg("hb", _) =>
       hbTimeout.foreach(_.cancel())
       hbTimeout = Some(system.scheduler.scheduleOnce(HB_DELAY + HB_INTERVAL, self, Admin.HbTimeout))
@@ -103,16 +100,79 @@ class Receiver(id: String) extends Actor {
     case Admin.Msg("fwd", data) =>
       for {
         to <- (data \ "to").asOpt[String]
-        fwdMsg <- (data \ "msg").asOpt[JsValue]
-        adminMsg <- fwdMsg.validate[Admin.Msg].asOpt
+        adminMsg <- (data \ "msg").validate[Admin.Msg]
       } parent ! Admin.Send(to, adminMsg)
       
     case Admin.Msg("ready", _) =>
       parent ! Admin.Ready(id)
       self ! Ready
-    
   } 
   
+}
+
+class Supervisor extends Actor {
+  import context._
+  
+  private var wsMembers = Map.empty[String, Member] // members that are Websocket-connected
+  private var notYetInitiatedMembers = Set.empty[String] // members that are Websocket-connected 
+                                                        // but the WebRTC hand-shake has not begun
+  var members = Map.empty[String, Member] // *ready* members (WebRTC-connected to each others)
+  
+  def receive = {
+    case m @ Send(to, _) => members.get(to).foreach(_.sender ! m)
+    case Broadcast(m) => members foreach {
+      case (id, member) => member.sender ! Send(id, Msg(m.event, m.data))
+    }
+    
+    case Admin.Send(to, Admin.Msg(event @ "initInfo", js: JsObject)) =>
+      wsMembers.get(to) foreach { member =>
+        val ids = Json.obj("members" -> wsMembers.keySet.diff(notYetInitiatedMembers))
+        member.sender ! Admin.Send(to, Admin.Msg(event, js ++ ids))
+        notYetInitiatedMembers -= to
+      }
+      
+    case m @ Admin.Send(to, _) => wsMembers.get(m.to).foreach(_.sender ! m)
+    
+    case Admin.Broadcast(m) => wsMembers foreach {
+      case (id, member) => member.sender ! Admin.Send(id, Admin.Msg(m.adminEvent, m.data))
+    }
+    
+    case Admin.Ready(id) =>
+      wsMembers.get(id).foreach(member => members = members + (id -> member))
+      
+    case Admin.ConnectWS(id, receiverProps, senderProps) =>
+      if (wsMembers.contains(id)) sender ! Admin.Forbidden(id, "id already connected")
+      else {
+        implicit val timeout = Timeout(1 second)
+        val receiveActor = context.actorOf(receiverProps, id+"-receiver")
+        val sendActor = context.actorOf(senderProps, id+"-sender")
+
+        val c = (sendActor ? Admin.Init(id, receiveActor)).map{
+          case c: Admin.ConnectedWS =>
+            play.Logger.debug(s"Connected Member with ID:$id")
+            wsMembers += (id -> Member(id, receiveActor, sendActor))
+            notYetInitiatedMembers += id 
+            receiveActor ! Admin.StartTimeout
+            c
+        }
+
+        c pipeTo sender
+      }
+    
+    case Admin.Disconnected(id) =>
+      wsMembers.get(id) foreach { m =>
+        wsMembers -= id
+        members -= id
+        notYetInitiatedMembers -= id
+        m.sender ! Admin.Disconnected(id)
+        m.receiver ! Admin.Disconnected(id)
+        m.receiver ! PoisonPill
+        m.sender ! PoisonPill
+      }
+      
+    case ListMembersIds =>
+      sender ! MemberIds(members.keys.toSeq)   
+  }
 }
 
 class Room(supervisorProps: Props)(implicit app: Application) {
@@ -137,16 +197,17 @@ class Room(supervisorProps: Props)(implicit app: Application) {
     implicit val timeout = Timeout(1 second)
 
     val futureItEnum = (supervisor ? Admin.ConnectWS(id, receiverProps, senderProps)).map {
+      
       case c: Admin.ConnectedWS =>
-        val iteratee = Iteratee.foreach[JsValue] { js =>
+        val iteratee = Iteratee.foreach[JsValue] { js =>    
           js.validate[Admin.Msg].fold(
-            _ => {
+            invalid = _ => {
               js.validate[Msg].fold(
-                err => Logger.error("Error parsing incoming json: " + err),
-                msg => c.receiver ! msg
+                invalid = err => Logger.error("Error parsing incoming json: " + err),
+                valid = msg => c.receiver ! msg
               )
             },
-            adminMsg => c.receiver ! adminMsg
+            valid = adminMsg => c.receiver ! adminMsg
            )
         }.map { _ =>
           supervisor ! Admin.Disconnected(id)
@@ -181,84 +242,17 @@ object Room {
     new Room(supervisorProps)(app)
 }
 
-class Supervisor extends Actor {
-  import context._
-  val log = Logging(system, Supervisor.this)
-  
-  private var wsMembers = Map.empty[String, Member] // members that are Websocket-connected
-  private var notYetInitiatedMembers = Set.empty[String] // members that are Websocket-connected 
-                                                        // but not the WebRTC hand-shake has not begun
-  var members = Map.empty[String, Member] // *ready* members (WebRTC-connected to each others)
-  
-  def receive = {
-    case m @ Send(to, _) => members.get(to).foreach(_.sender ! m)
-    case Broadcast(m) => members foreach {
-      case (id, member) => member.sender ! Send(id, Msg(m.event, m.data))
-    }
-    
-    case Admin.Send(to, Admin.Msg(event @ "initInfo", js: JsObject)) =>
-      wsMembers.get(to) foreach { member =>
-        val ids = Json.obj("members" -> wsMembers.keySet.diff(notYetInitiatedMembers))
-	member.sender ! Admin.Send(to, Admin.Msg(event, js ++ ids))
-        notYetInitiatedMembers -= to
-      }
-      
-    case m @ Admin.Send(to, _) => wsMembers.get(m.to).foreach(_.sender ! m)
-    
-    case Admin.Broadcast(m) => wsMembers foreach {
-      case (id, member) => member.sender ! Admin.Send(id, Admin.Msg(m.adminEvent, m.data))
-    }
-    
-    case Admin.Ready(id) =>
-      wsMembers.get(id).foreach(member => members = members + (id -> member))
-      
-    case Admin.ConnectWS(id, receiverProps, senderProps) =>
-      if(wsMembers.contains(id)) sender ! Admin.Forbidden(id, "id already connected")
-      else {
-        implicit val timeout = Timeout(1 second)
-        val receiveActor = context.actorOf(receiverProps, id+"-receiver")
-        val sendActor = context.actorOf(senderProps, id+"-sender")
-
-        val c = (sendActor ? Admin.Init(id, receiveActor)).map{
-          case c: Admin.ConnectedWS =>
-            play.Logger.debug(s"Connected Member with ID:$id")
-            wsMembers += (id -> Member(id, receiveActor, sendActor))
-            notYetInitiatedMembers += id 
-            receiveActor ! Admin.StartTimeout
-            c
-        }
-
-        c pipeTo sender
-      }
-    
-    case Admin.Disconnected(id) =>
-      wsMembers.get(id) foreach { m =>
-        wsMembers -= id
-        members -= id
-        notYetInitiatedMembers -= id
-        m.sender ! Admin.Disconnected(id)
-        m.receiver ! Admin.Disconnected(id)
-        m.receiver ! PoisonPill
-        m.sender ! PoisonPill
-      }
-      
-    case ListMembersIds =>
-      sender ! MemberIds(members.keys.toSeq)
-      
-  }
-  
-}
-
 class WebSocketSender extends Actor {
   import context._
   
-  var channel: Option[Concurrent.Channel[JsValue]] = None
+  val promiseChannel = promise[Concurrent.Channel[JsValue]]
+  var channel = promiseChannel.future
 
   def receive = {
     case Admin.Init(id, receiverActor) =>
       val me = self
       val enumerator = Concurrent.unicast[JsValue]{ c =>
-        channel = Some(c)
+        promiseChannel.success(c)
         receiverActor ! Admin.WebrtcHandshakeInit
       }
       sender ! Admin.ConnectedWS(id, receiverActor, enumerator)
