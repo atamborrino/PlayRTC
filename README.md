@@ -203,8 +203,10 @@ val room = Room(Props[MySupervisor])
 ```
 
 ## Browser support
-- Chrome M31+
-- Firefox soon
+- Chrome 32+
+- Firefox 27+
+
+Important note: due to Firefox and Chrome interop, the current implicit(!)maximum data size when using datachannel.send(data) is 16KB (see https://code.google.com/p/webrtc/issues/detail?id=2279). For bigger data, you must do the data-chunking at the application level.
 
 ## License
 This software is licensed under the Apache 2 license, quoted below.

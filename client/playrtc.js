@@ -28,16 +28,24 @@
   var Playrtc = {};
 
   var DEFAULT_TURN_STUN_CONFIG = {'iceServers': [{'url': 'stun:stun.l.google.com:19302'}]};
-  var RTCPeerConnection = window.RTCPeerConnection || window.webkitRTCPeerConnection || window.mozRTCPeerConnection;
+  var RTCPeerConnection = window.webkitRTCPeerConnection || window.mozRTCPeerConnection || window.RTCPeerConnection;
+  var RTCSessionDescription = window.mozRTCSessionDescription || window.RTCSessionDescription;
+  var RTCIceCandidate = window.mozRTCIceCandidate || window.RTCIceCandidate;
 
   Playrtc.isCompatible = function() {
     if (navigator.mozGetUserMedia) {
-      console.warn('Firefox is not supported for now...');
-      return false;
+      // console.warn('Firefox is not supported for now...');
+      var firefoxDetectedVersion = parseInt(navigator.userAgent.match(/Firefox\/([0-9]+)\./)[1], 10);
+      if (firefoxDetectedVersion < 27) {
+        console.warn('Only Firefox >= 27 is supported (due to the use of SCTP-based datachannels and interop with Chrome)');
+        return false;
+      } else {
+        return true;
+      }
     } else if (navigator.webkitGetUserMedia){
-      var webrtcDetectedVersion = parseInt(navigator.userAgent.match(/Chrom(e|ium)\/([0-9]+)\./)[2], 10);
-      if (webrtcDetectedVersion < 31) {
-        console.warn('Only Chrome >= M31 is supported (due to the use of SCTP-based datachannels)');
+      var webkitDetectedVersion = parseInt(navigator.userAgent.match(/Chrom(e|ium)\/([0-9]+)\./)[2], 10);
+      if (webkitDetectedVersion < 31) {
+        console.warn('Only Chrome >= 32 is supported (due to the use of SCTP-based datachannels and interop with Firefox)');
         return false;
       } else {
         return true;
@@ -88,7 +96,6 @@
     self._ws = new WebSocket(url);
 
     self._ws.onmessage = function(evt) {
-      // console.log(evt.data);
       var json = JSON.parse(evt.data);
       if (json.hasOwnProperty('event')) {
         // user event
@@ -193,17 +200,10 @@
         self._ws.send(fwdAdminMsg(id, 'iceCandidate', {'from': self.id,'candidate': iceEvt.candidate}));
       }
     };
-    memberPeerConn.onnegotiationneeded = function() {
-      memberPeerConn.createOffer(function(desc){
-        memberPeerConn.setLocalDescription(desc, function() {
-          self._ws.send(fwdAdminMsg(id, 'sdpOffer', {'from':self.id, 'sdp': desc}));
-        });
-      });
-    };
 
     self._members[id] = {'peerconn': memberPeerConn, 'datachannel': null};
 
-    var datachannel = memberPeerConn.createDataChannel('Playrtc', {reliable : true});
+    var datachannel = memberPeerConn.createDataChannel('playrtc', {reliable : true});
 
     datachannel.onopen = function(evt) {
       self._members[id].datachannel = datachannel;
@@ -215,6 +215,14 @@
     datachannel.onmessage = function(evt) {
       self._handleP2PMsg(evt, id);
     };
+    
+    memberPeerConn.createOffer(function(desc) {
+      memberPeerConn.setLocalDescription(desc, function() {
+        self._ws.send(fwdAdminMsg(id, 'sdpOffer', {'from':self.id, 'sdp': desc}));
+      });
+    }, function(err) {
+      console.err("Error while creating WebRTC offer");
+    });
 
   };
 
@@ -235,6 +243,8 @@
         memberPeerConn.setLocalDescription(desc, function() {
           self._ws.send(fwdAdminMsg(id, 'sdpAnswer', {'from': self.id,'sdp': desc}));
         });
+      }, function(err) {
+        console.err("Error while creating WebRTC answer");
       });
     });
 
